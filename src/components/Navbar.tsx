@@ -3,9 +3,9 @@
 import Link from "next/link";
 
 const navigationLinks = [
-  { name: "Hem", href: "/" },
+  { name: "Home", href: "/" },
   { name: "Compare", href: "/compare" },
-  { name: "Om oss", href: "/about" },
+  { name: "About us", href: "/about" },
 ];
 
 export default function Navbar() {

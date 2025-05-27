@@ -12,15 +12,15 @@ export default function HomePage() {
         height={400}
         className="mx-auto mb-6 rounded-xl mix-blend-lighten"
       />
-      <h1 className="text-5xl font-extrabold mb-6">Välkommen till Head2Head!</h1>
+      <h1 className="text-5xl font-extrabold mb-6">Welcome to Head2Head!</h1>
       <p className="text-lg max-w-2xl mx-auto mb-8">
-        Jämför fotbollsspelares statistik enkelt – välj två spelare och se vem som är bäst.
+        Compare football players stats easily! Pick two players and see who comes out on top.
       </p>
       <a
         href="/compare"
         className="inline-block bg-lime-400 text-black px-8 py-3 rounded-full font-semibold hover:bg-lime-300 transition"
       >
-        Klicka här för att jämföra!
+        Click here to compare!
       </a>
     </section>
   );

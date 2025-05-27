@@ -1,177 +1,213 @@
 "use client";
 
-import { useState } from "react";
-
-type Team = {
-  id: string;
-  name: string;
-  color: string; // t.ex. hex eller tailwind-klass
-  backgroundUrl?: string;
-};
-
-type Player = {
-  id: string;
-  name: string;
-  imageUrl: string;
-  teamId: string;
-};
-
-// Exempeldata, ersätt med data från backend/seed senare
-const teams: Team[] = [
-  { id: "arsenal", name: "Arsenal", color: "bg-red-600" },
-  { id: "chelsea", name: "Chelsea", color: "bg-blue-600" },
-  { id: "liverpool", name: "Liverpool", color: "bg-red-800" },
-];
-
-const players: Player[] = [
-  { id: "saka", name: "Saka", imageUrl: "/players/saka.png", teamId: "arsenal" },
-  { id: "partey", name: "Partey", imageUrl: "/players/partey.png", teamId: "arsenal" },
-  { id: "kepa", name: "Kepa", imageUrl: "/players/kepa.png", teamId: "chelsea" },
-  { id: "mane", name: "Mane", imageUrl: "/players/mane.png", teamId: "liverpool" },
-];
+import React, { useState } from "react";
+import { useTeams } from "@/hooks/useTeams";
+import { usePlayersByTeamId } from "@/hooks/usePlayers";
+import { getComparePlayers, ComparePlayersResponse, ComparePlayerStat } from "@/lib/api/playerService";
+import { useQuery } from "@tanstack/react-query";
 
 export default function ComparePage() {
-  const [selectedTeam1, setSelectedTeam1] = useState<Team | null>(null);
-  const [selectedPlayer1, setSelectedPlayer1] = useState<Player | null>(null);
+  const [team1Id, setTeam1Id] = useState<number | null>(null);
+  const [team2Id, setTeam2Id] = useState<number | null>(null);
+  const [player1Id, setPlayer1Id] = useState<number | null>(null);
+  const [player2Id, setPlayer2Id] = useState<number | null>(null);
+  const [compareTriggered, setCompareTriggered] = useState(false);
 
-  const [selectedTeam2, setSelectedTeam2] = useState<Team | null>(null);
-  const [selectedPlayer2, setSelectedPlayer2] = useState<Player | null>(null);
+  const { data: teams } = useTeams();
 
-  // Tillstånd för vad som väljs just nu (team eller player)
-  const [choosingFor, setChoosingFor] = useState<"team1" | "player1" | "team2" | "player2" | null>(null);
+  const { data: playersTeam1 } = usePlayersByTeamId(team1Id ?? 0);
+  const { data: playersTeam2 } = usePlayersByTeamId(team2Id ?? 0);
 
-  // Filtrera spelare baserat på valt lag
-  const playersForTeam1 = selectedTeam1 ? players.filter(p => p.teamId === selectedTeam1.id) : [];
-  const playersForTeam2 = selectedTeam2 ? players.filter(p => p.teamId === selectedTeam2.id) : [];
+  const { data: compareData, refetch, isFetching } = useQuery<ComparePlayersResponse>({
+    queryKey: ["comparePlayers", player1Id, player2Id],
+    queryFn: () => getComparePlayers(player1Id!, player2Id!),
+    enabled: false,
+  });
+
+  const handleCompareClick = () => {
+    if (player1Id && player2Id) {
+      setCompareTriggered(true);
+      refetch();
+    }
+  };
+
+  const handleReset = () => {
+    setTeam1Id(null);
+    setTeam2Id(null);
+    setPlayer1Id(null);
+    setPlayer2Id(null);
+    setCompareTriggered(false);
+  };
+
+  const getTeamLogo = (id: number | null) => {
+    return teams?.find((t) => t.teamId === id)?.teamLogoUrl || "";
+  };
 
   return (
-    <section className="flex justify-center gap-12 mt-16">
+    <div className="max-w-5xl mx-auto p-6 space-y-8 text-lime-400">
+      <h1 className="text-3xl font-bold mb-6">Compare Players</h1>
 
-      {/* Fyrkant 1 */}
-      <div
-        className={`relative w-48 h-48 rounded-xl border-4 cursor-pointer flex items-center justify-center select-none
-          ${selectedTeam1 ? selectedTeam1.color : "border-lime-400 border-solid"}
-        `}
-        onClick={() => {
-          if (!selectedTeam1) setChoosingFor("team1");
-          else if (!selectedPlayer1) setChoosingFor("player1");
-          else setChoosingFor(null);
-        }}
-      >
-        {!selectedTeam1 && <span className="text-lime-400 font-bold text-lg">Välj lag 1</span>}
-        {selectedTeam1 && !selectedPlayer1 && <span className="text-white font-bold text-lg">{selectedTeam1.name}</span>}
-        {selectedPlayer1 && (
-          <img
-            src={selectedPlayer1.imageUrl}
-            alt={selectedPlayer1.name}
-            className="w-24 h-24 rounded-md object-cover"
-          />
+      {/* Wrapper som gör att rutorna ligger bredvid varandra */}
+      <div className="flex gap-6">
+        {/* Select Team and Player 1 */}
+        <div className="border border-lime-400 rounded p-4 flex-1">
+          <label className="block mb-1 font-semibold">Select Team 1</label>
+          <select
+            className="w-full p-2 rounded bg-neutral-900 text-lime-400"
+            value={team1Id ?? ""}
+            onChange={(e) => {
+              setTeam1Id(Number(e.target.value) || null);
+              setPlayer1Id(null);
+              setCompareTriggered(false);
+            }}
+          >
+            <option value="">-- Select Team --</option>
+            {teams?.map((team) => (
+              <option key={team.teamId} value={team.teamId}>
+                {team.teamName}
+              </option>
+            ))}
+          </select>
+
+          <label className="block mt-4 mb-1 font-semibold">Select Player 1</label>
+          <select
+            className="w-full p-2 rounded bg-neutral-900 text-lime-400"
+            value={player1Id ?? ""}
+            onChange={(e) => {
+              setPlayer1Id(Number(e.target.value) || null);
+              setCompareTriggered(false);
+            }}
+            disabled={!team1Id}
+          >
+            <option value="">-- Select Player --</option>
+            {playersTeam1?.map((p) => (
+              <option key={p.playerId} value={p.playerId}>
+                {p.playerName}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Select Team and Player 2 */}
+        <div className="border border-lime-400 rounded p-4 flex-1">
+          <label className="block mb-1 font-semibold">Select Team 2</label>
+          <select
+            className="w-full p-2 rounded bg-neutral-900 text-lime-400"
+            value={team2Id ?? ""}
+            onChange={(e) => {
+              setTeam2Id(Number(e.target.value) || null);
+              setPlayer2Id(null);
+              setCompareTriggered(false);
+            }}
+          >
+            <option value="">-- Select Team --</option>
+            {teams?.map((team) => (
+              <option key={team.teamId} value={team.teamId}>
+                {team.teamName}
+              </option>
+            ))}
+          </select>
+
+          <label className="block mt-4 mb-1 font-semibold">Select Player 2</label>
+          <select
+            className="w-full p-2 rounded bg-neutral-900 text-lime-400"
+            value={player2Id ?? ""}
+            onChange={(e) => {
+              setPlayer2Id(Number(e.target.value) || null);
+              setCompareTriggered(false);
+            }}
+            disabled={!team2Id}
+          >
+            <option value="">-- Select Player --</option>
+            {playersTeam2?.map((p) => (
+              <option key={p.playerId} value={p.playerId}>
+                {p.playerName}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Player images with team logo background */}
+      <div className="flex justify-between items-center gap-4 mt-6">
+        {player1Id && (
+          <div
+            className="w-40 h-56 rounded-lg bg-cover bg-center relative border border-lime-400"
+            style={{ backgroundImage: `url(${getTeamLogo(team1Id)})` }}
+          >
+            <img
+              src={playersTeam1?.find((p) => p.playerId === player1Id)?.playerPicUrl}
+              alt="Player 1"
+              className="w-full h-full object-contain relative z-10"
+            />
+            <div className="absolute inset-0 bg-black opacity-30 rounded-lg"></div>
+          </div>
+        )}
+
+        {player2Id && (
+          <div
+            className="w-40 h-56 rounded-lg bg-cover bg-center relative border border-lime-400"
+            style={{ backgroundImage: `url(${getTeamLogo(team2Id)})` }}
+          >
+            <img
+              src={playersTeam2?.find((p) => p.playerId === player2Id)?.playerPicUrl}
+              alt="Player 2"
+              className="w-full h-full object-contain relative z-10"
+            />
+            <div className="absolute inset-0 bg-black opacity-30 rounded-lg"></div>
+          </div>
         )}
       </div>
 
-      {/* Fyrkant 2 */}
-      <div
-        className={`relative w-48 h-48 rounded-xl border-4 cursor-pointer flex items-center justify-center select-none
-          ${selectedTeam2 ? selectedTeam2.color : "border-lime-400 border-solid"}
-        `}
-        onClick={() => {
-          if (!selectedTeam2) setChoosingFor("team2");
-          else if (!selectedPlayer2) setChoosingFor("player2");
-          else setChoosingFor(null);
-        }}
-      >
-        {!selectedTeam2 && <span className="text-lime-400 font-bold text-lg">Välj lag 2</span>}
-        {selectedTeam2 && !selectedPlayer2 && <span className="text-white font-bold text-lg">{selectedTeam2.name}</span>}
-        {selectedPlayer2 && (
-          <img
-            src={selectedPlayer2.imageUrl}
-            alt={selectedPlayer2.name}
-            className="w-24 h-24 rounded-md object-cover"
-          />
-        )}
+      {/* Compare and Reset buttons centered */}
+      <div className="flex justify-center mt-6 gap-4">
+        <button
+          className="px-6 py-3 bg-lime-400 text-black rounded hover:bg-lime-300 transition disabled:opacity-50"
+          disabled={!player1Id || !player2Id}
+          onClick={handleCompareClick}
+        >
+          Compare
+        </button>
+
+        <button
+          className="px-6 py-3 bg-gray-700 text-lime-400 rounded hover:bg-gray-600 transition"
+          onClick={handleReset}
+        >
+          Reset
+        </button>
       </div>
 
-      {/* Välj lag / spelare lista */}
-      {choosingFor === "team1" && (
-        <div className="absolute top-64 left-1/4 bg-neutral-900 p-4 rounded shadow-lg">
-          <h3 className="text-lime-400 mb-2 font-semibold">Välj lag 1</h3>
-          {teams.map(team => (
-            <button
-              key={team.id}
-              onClick={() => {
-                setSelectedTeam1(team);
-                setSelectedPlayer1(null);
-                setChoosingFor("player1");
-              }}
-              className="block w-full text-left py-1 px-2 hover:bg-lime-600 rounded text-white"
-            >
-              {team.name}
-            </button>
+      {/* Show comparison stats */}
+      {compareTriggered && compareData && (
+        <div className="mt-8 space-y-4">
+          <h2 className="text-xl font-bold">
+            Comparison: {compareData.player1Name} vs {compareData.player2Name}
+          </h2>
+
+          {compareData.stats.map((stat: ComparePlayerStat) => (
+            <div key={stat.statName}>
+              <div className="flex justify-between mb-1">
+                <span>{stat.statName}</span>
+                <span>
+                  {stat.player1Value} - {stat.player2Value}
+                </span>
+              </div>
+              <div className="relative h-6 bg-neutral-800 rounded overflow-hidden">
+                <div
+                  className="absolute left-0 top-0 h-full bg-lime-400 transition-all duration-700"
+                  style={{ width: `${stat.player1Percent}%` }}
+                />
+                <div
+                  className="absolute right-0 top-0 h-full bg-emerald-800 transition-all duration-700"
+                  style={{ width: `${stat.player2Percent}%` }}
+                />
+              </div>
+            </div>
           ))}
-          <button onClick={() => setChoosingFor(null)} className="mt-2 text-red-400 hover:text-red-600">Avbryt</button>
         </div>
       )}
 
-      {choosingFor === "player1" && selectedTeam1 && (
-        <div className="absolute top-64 left-1/4 bg-neutral-900 p-4 rounded shadow-lg max-h-60 overflow-auto">
-          <h3 className="text-lime-400 mb-2 font-semibold">Välj spelare i {selectedTeam1.name}</h3>
-          {playersForTeam1.map(player => (
-            <button
-              key={player.id}
-              onClick={() => {
-                setSelectedPlayer1(player);
-                setChoosingFor(null);
-              }}
-              className="flex items-center gap-2 py-1 px-2 hover:bg-lime-600 rounded w-full text-white"
-            >
-              <img src={player.imageUrl} alt={player.name} className="w-6 h-6 rounded" />
-              {player.name}
-            </button>
-          ))}
-          <button onClick={() => setChoosingFor(null)} className="mt-2 text-red-400 hover:text-red-600">Avbryt</button>
-        </div>
-      )}
-
-      {/* Samma för team 2 */}
-      {choosingFor === "team2" && (
-        <div className="absolute top-64 right-1/4 bg-neutral-900 p-4 rounded shadow-lg">
-          <h3 className="text-lime-400 mb-2 font-semibold">Välj lag 2</h3>
-          {teams.map(team => (
-            <button
-              key={team.id}
-              onClick={() => {
-                setSelectedTeam2(team);
-                setSelectedPlayer2(null);
-                setChoosingFor("player2");
-              }}
-              className="block w-full text-left py-1 px-2 hover:bg-lime-600 rounded text-white"
-            >
-              {team.name}
-            </button>
-          ))}
-          <button onClick={() => setChoosingFor(null)} className="mt-2 text-red-400 hover:text-red-600">Avbryt</button>
-        </div>
-      )}
-
-      {choosingFor === "player2" && selectedTeam2 && (
-        <div className="absolute top-64 right-1/4 bg-neutral-900 p-4 rounded shadow-lg max-h-60 overflow-auto">
-          <h3 className="text-lime-400 mb-2 font-semibold">Välj spelare i {selectedTeam2.name}</h3>
-          {playersForTeam2.map(player => (
-            <button
-              key={player.id}
-              onClick={() => {
-                setSelectedPlayer2(player);
-                setChoosingFor(null);
-              }}
-              className="flex items-center gap-2 py-1 px-2 hover:bg-lime-600 rounded w-full text-white"
-            >
-              <img src={player.imageUrl} alt={player.name} className="w-6 h-6 rounded" />
-              {player.name}
-            </button>
-          ))}
-          <button onClick={() => setChoosingFor(null)} className="mt-2 text-red-400 hover:text-red-600">Avbryt</button>
-        </div>
-      )}
-    </section>
+      {compareTriggered && isFetching && <p>Loading comparison...</p>}
+    </div>
   );
 }
