@@ -5,7 +5,7 @@ import Link from "next/link";
 const navigationLinks = [
   { name: "Home", href: "/" },
   { name: "Compare", href: "/compare" },
-  { name: "About us", href: "/about" },
+  { name: "How it works", href: "/howitworks" },
 ];
 
 export default function Navbar() {
