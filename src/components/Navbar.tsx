@@ -6,6 +6,7 @@ const navigationLinks = [
   { name: "Home", href: "/" },
   { name: "Compare", href: "/compare" },
   { name: "How it works", href: "/howitworks" },
+   { name: "About this project", href: "/aboutthispage" },
 ];
 
 export default function Navbar() {

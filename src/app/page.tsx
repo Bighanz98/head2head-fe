@@ -14,7 +14,7 @@ export default function HomePage() {
       />
       <h1 className="text-5xl font-extrabold mb-6">Welcome to Head2Head!</h1>
       <p className="text-lg max-w-2xl mx-auto mb-8">
-        Compare football players stats easily! Pick two players and see who comes out on top.
+        Compare Premier League footballers stats easily, for the season 24/25! Pick two players and see who comes out on top.
       </p>
       <a
         href="/compare"

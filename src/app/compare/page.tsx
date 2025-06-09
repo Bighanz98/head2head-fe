@@ -40,7 +40,7 @@ export default function ComparePage() {
         let player1Score = 0;
         let player2Score = 0;
 
-        // Filtrera bort irrelevanta stats
+        
         const excludedStats = ["Yellow Cards", "Red Cards", "Passes"];
 
         const relevantStats = data.stats.filter(
@@ -146,7 +146,7 @@ export default function ComparePage() {
       <div className="flex gap-6">
         {/* Team 1 */}
         <div className="border border-lime-400 rounded p-4 flex-1">
-          <label className="block mb-1 font-semibold">Select Team 1</label>
+          <label className="block mb-1 font-semibold">Team 1</label>
           <select
             className="w-full p-2 rounded bg-neutral-900 text-lime-400"
             value={team1Id ?? ""}
@@ -157,7 +157,7 @@ export default function ComparePage() {
               setWinner(null);
             }}
           >
-            <option value="">-- Select Team --</option>
+            <option value=""> Select Team </option>
             {teams?.map((team) => (
               <option key={team.teamId} value={team.teamId}>
                 {team.teamName}
@@ -165,7 +165,7 @@ export default function ComparePage() {
             ))}
           </select>
 
-          <label className="block mt-4 mb-1 font-semibold">Select Player 1</label>
+          <label className="block mt-4 mb-1 font-semibold">Player 1</label>
           <select
             className="w-full p-2 rounded bg-neutral-900 text-lime-400"
             value={player1Id ?? ""}
@@ -176,7 +176,7 @@ export default function ComparePage() {
             }}
             disabled={!team1Id}
           >
-            <option value="">-- Select Player --</option>
+            <option value=""> Select Player </option>
             {playersTeam1?.map((p) => (
               <option key={p.playerId} value={p.playerId}>
                 {p.playerName}
@@ -187,7 +187,7 @@ export default function ComparePage() {
 
         {/* Team 2 */}
         <div className="border border-lime-400 rounded p-4 flex-1">
-          <label className="block mb-1 font-semibold">Select Team 2</label>
+          <label className="block mb-1 font-semibold">Team 2</label>
           <select
             className="w-full p-2 rounded bg-neutral-900 text-lime-400"
             value={team2Id ?? ""}
@@ -198,7 +198,7 @@ export default function ComparePage() {
               setWinner(null);
             }}
           >
-            <option value="">-- Select Team --</option>
+            <option value=""> Select Team </option>
             {teams?.map((team) => (
               <option key={team.teamId} value={team.teamId}>
                 {team.teamName}
@@ -206,7 +206,7 @@ export default function ComparePage() {
             ))}
           </select>
 
-          <label className="block mt-4 mb-1 font-semibold">Select Player 2</label>
+          <label className="block mt-4 mb-1 font-semibold">Player 2</label>
           <select
             className="w-full p-2 rounded bg-neutral-900 text-lime-400"
             value={player2Id ?? ""}
@@ -217,7 +217,7 @@ export default function ComparePage() {
             }}
             disabled={!team2Id}
           >
-            <option value="">-- Select Player --</option>
+            <option value=""> Select Player </option>
             {playersTeam2?.map((p) => (
               <option key={p.playerId} value={p.playerId}>
                 {p.playerName}
